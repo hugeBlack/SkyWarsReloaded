@@ -6,6 +6,7 @@ import com.walrusone.skywarsreloaded.game.GameMap;
 import com.walrusone.skywarsreloaded.game.TeamCard;
 import com.walrusone.skywarsreloaded.managers.MatchManager;
 import com.walrusone.skywarsreloaded.utilities.Util;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -102,23 +103,34 @@ public class CrateDropEvent extends MatchEvent {
         int spawned = 0;
         World world = gMap.getCurrentWorld();
         int cratesToAdd = Util.get().getRandomNum(0, maxNumOfCrates);
-        for (int i = 0; i < cratesToAdd; i++) {
+        // 最多尝试100次，失败就算了~
+        int iter = 0;
+        while (spawned < cratesToAdd && iter < 100) {
+            ++iter;
+
             Location loc = new Location(world, gMap.getSpectateSpawn().getX(), 0.0D, gMap.getSpectateSpawn().getZ());
             Location loc2 = new Location(world, ((TeamCard) gMap.getTeamCards().get(0)).getSpawns().get(0).getX(), ((TeamCard) gMap.getTeamCards().get(0)).getSpawns().get(0).getY(), ((TeamCard) gMap.getTeamCards().get(0)).getSpawns().get(0).getZ());
             int distance = (int) Math.hypot(loc.getX() - loc2.getX(), loc.getZ() - loc2.getZ());
             int y = loc2.getBlockY();
+
             Location spawn = new Location(world, loc.getBlockX() + Util.get().getRandomNum(-distance, distance), 0.0D, loc.getBlockZ() + Util.get().getRandomNum(-distance, distance));
-            Block block = world.getHighestBlockAt(spawn);
-            if ((block != null) && (!block.getType().equals(Material.AIR))) {
-                spawn = block.getLocation();
-            } else {
-                int range = Util.get().getRandomNum(y - 15, y + 15);
-                spawn = new Location(world, spawn.getBlockX(), range, spawn.getBlockZ());
-                world.getBlockAt(spawn).setType(Material.COBBLESTONE);
+            if(spawn.getWorld().getHighestBlockAt(spawn).getY() == -65){
+                continue;
             }
+
+//            Block block = world.getHighestBlockAt(spawn);
+//            if ((block != null) && (!block.getType().equals(Material.AIR))) {
+//                spawn = block.getLocation();
+//            } else {
+//                int range = Util.get().getRandomNum(y - 15, y + 15);
+//                spawn = new Location(world, spawn.getBlockX(), range, spawn.getBlockZ());
+//                world.getBlockAt(spawn).setType(Material.COBBLESTONE);
+//            }
             gMap.addCrate(spawn, maxItemsPerCrate);
+            MatchManager.get().message(gMap, ChatColor.translateAlternateColorCodes('&', String.format("Crate is going to drop at &6(x=%d,z=%d)&r !", spawn.getBlockX(),spawn.getBlockZ())));
             spawned++;
         }
+
         return spawned;
     }
 
