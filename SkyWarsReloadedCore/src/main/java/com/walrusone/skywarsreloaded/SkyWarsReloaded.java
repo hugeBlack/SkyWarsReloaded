@@ -244,32 +244,7 @@ public class SkyWarsReloaded extends JavaPlugin implements PluginMessageListener
             // Currently disabled due to inability to access bungeecord PAF from spigot
             // this.getServer().getPluginManager().registerEvents(new PartyAndFriendsHook(), this);
         }
-        // SLIME WORLD MANAGER
-        if (Bukkit.getPluginManager().isPluginEnabled("SlimeWorldManager") && getCfg().isUseSlimeWorldManager()) {
-            getLogger().info("SlimeWorldManager option enabled. Checking for AdvancedSlimePaper...");
-            try {
-                Class.forName("com.infernalsuite.aswm.SlimeNMSBridgeImpl");
-                getLogger().info("Found AdvancedSlimePaper!");
-                wm = (ASPWorldManager) Class.forName("com.walrusone.skywarsreloaded.managers.worlds.ASPWorldManagerImpl")
-                        .getConstructor()
-                        .newInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
-                getLogger().info("AdvancedSlimePaper not found");
-                int serverFeatureVersion = Integer.parseInt(getServer().getVersion().split("\\.")[1]);
-                if (serverFeatureVersion > 19) {
-                    getLogger().info("SlimeWorldManager cannot be used on 1.20 or higher. We expected the server to be running AdvancedSlimePaper.");
-                    wm = null;
-                } else if (serverFeatureVersion > 14) {
-                    getLogger().info("Using ASWM World Manager");
-                    wm = new ASWMWorldManager();
-                } else {
-                    getLogger().info("Using Legacy SWM World Manager");
-                    wm = new LegacySWMWorldManager();
-                }
-            }
-        }
-
+    
         if (wm == null) {
             getLogger().info("Using Bukkit World Manager");
             wm = new FileWorldManager();
