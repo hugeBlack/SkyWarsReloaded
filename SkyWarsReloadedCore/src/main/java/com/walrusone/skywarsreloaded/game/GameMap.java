@@ -5,15 +5,18 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.walrusone.skywarsreloaded.SkyWarsReloaded;
 import com.walrusone.skywarsreloaded.config.Config;
-import com.walrusone.skywarsreloaded.enums.*;
+import com.walrusone.skywarsreloaded.enums.ChestPlacementType;
+import com.walrusone.skywarsreloaded.enums.MatchState;
+import com.walrusone.skywarsreloaded.enums.PlayerRemoveReason;
+import com.walrusone.skywarsreloaded.enums.Vote;
 import com.walrusone.skywarsreloaded.events.SkyWarsJoinEvent;
 import com.walrusone.skywarsreloaded.events.SkyWarsMatchStateChangeEvent;
 import com.walrusone.skywarsreloaded.game.cages.*;
 import com.walrusone.skywarsreloaded.game.signs.SWRSign;
 import com.walrusone.skywarsreloaded.managers.MatchManager;
 import com.walrusone.skywarsreloaded.managers.PlayerStat;
-import com.walrusone.skywarsreloaded.managers.worlds.FileWorldManager;
 import com.walrusone.skywarsreloaded.managers.worlds.ASWMWorldManager;
+import com.walrusone.skywarsreloaded.managers.worlds.FileWorldManager;
 import com.walrusone.skywarsreloaded.managers.worlds.WorldManager;
 import com.walrusone.skywarsreloaded.managers.worlds.WorldManagerType;
 import com.walrusone.skywarsreloaded.matchevents.*;
@@ -422,15 +425,15 @@ public class GameMap {
                 for (TeamCard tCard : teamCards) {
                     if (SkyWarsReloaded.getCfg().debugEnabled()) {
                         Bukkit.getLogger().log(Level.WARNING, "#addPlayers: --teamCard: " + (tCard.getPlace() + 1));
-                        Bukkit.getLogger().log(Level.WARNING, "#addPlayers: (" + (tCard.getPlace() + 1) + ") fullCount: " + tCard.getFullCount());
+                        Bukkit.getLogger().log(Level.WARNING, "#addPlayers: (" + (tCard.getPlace() + 1) + ") emptySlots: " + tCard.getEmptySlots());
                     }
-                    if (tCard.getFullCount() > 0) { // If space available
+                    if (tCard.getEmptySlots() > 0) { // If space available
                         reservedTeamCard = tCard.sendReservation(player, ps);
-                        break;
+                        if (reservedTeamCard != null) break;
                     }
                 }
             } else { // In party mode
-                if (teamToTry.getFullCount() > 0) {
+                if (teamToTry.getEmptySlots() > 0) {
                     reservedTeamCard = teamToTry.sendReservation(player, ps);
                 } else {
                     SkyWarsReloaded.get().getLogger().warning("Player attempted to join party team but the team referenced is empty (" + player.getName() + ", " + teamToTry.getTeamName() + ")");
@@ -478,7 +481,7 @@ public class GameMap {
                     PlayerStat ps = PlayerStat.getPlayerStats(uuid);
                     if (ps != null && player != null && ps.isInitialized()) {
                         for (TeamCard tCard : teamCards) {
-                            if (tCard.getFullCount() > 0) {
+                            if (tCard.getEmptySlots() > 0) {
                                 Util.get().ejectPassengers(player);
                                 TeamCard reserve = tCard.sendReservation(player, ps);
                                 if (reserve != null) {
@@ -495,7 +498,7 @@ public class GameMap {
             if (teamToTry == null) {
                 teamCards.sort(new TeamCardComparator());
                 for (TeamCard tCard : teamCards) {
-                    if (tCard.getFullCount() >= party.getSize()) {
+                    if (tCard.getEmptySlots() >= party.getSize()) {
                         for (int i = 0; i < party.getSize(); i++) {
                             Player player = Bukkit.getPlayer(party.getMembers().get(i));
                             PlayerStat ps = PlayerStat.getPlayerStats(player.getUniqueId());
@@ -514,7 +517,7 @@ public class GameMap {
                     }
                 }
             } else {
-                if (teamToTry.getFullCount() >= party.getSize()) {
+                if (teamToTry.getEmptySlots() >= party.getSize()) {
                     for (int i = 0; i < party.getSize(); i++) {
                         Player player = Bukkit.getPlayer(party.getMembers().get(i));
                         PlayerStat ps = PlayerStat.getPlayerStats(player.getUniqueId());
@@ -653,7 +656,7 @@ public class GameMap {
             return false;
         }
         for (TeamCard tCard : teamCards) {
-            if (tCard.getFullCount() > 0) {
+            if (tCard.getEmptySlots() > 0) {
                 return true;
             }
         }
@@ -669,7 +672,7 @@ public class GameMap {
             return playerCount + party.getSize() - 1 < teamCards.size();
         } else {
             for (TeamCard tCard : teamCards) {
-                if (tCard.getFullCount() >= party.getSize()) {
+                if (tCard.getEmptySlots() >= party.getSize()) {
                     return true;
                 }
             }
@@ -1093,7 +1096,6 @@ public class GameMap {
                 }
             }
             if (teamSize > 1) {
-                // todo test this
                 cage.createSpawnPlatforms(this);
             }
         }
@@ -1327,7 +1329,8 @@ public class GameMap {
     public void addSign(Location loc) {
         signs.add(SkyWarsReloaded.getNMS().createSWRSign(name, loc));
         saveArenaData();
-        updateSigns();
+
+        SkyWarsReloaded.get().getServer().getScheduler().runTask(SkyWarsReloaded.get(), this::updateSigns);
     }
 
     public String getDisplayName() {
@@ -2255,7 +2258,7 @@ public class GameMap {
     public static class TeamCardComparator implements Comparator<TeamCard> {
         @Override
         public int compare(TeamCard f1, TeamCard f2) {
-            return Integer.compare(f1.getFullCount(), f2.getFullCount());
+            return Integer.compare(f1.getEmptySlots(), f2.getEmptySlots());
         }
     }
 
