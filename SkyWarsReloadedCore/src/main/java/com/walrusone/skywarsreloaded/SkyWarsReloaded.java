@@ -245,7 +245,7 @@ public class SkyWarsReloaded extends JavaPlugin implements PluginMessageListener
             // this.getServer().getPluginManager().registerEvents(new PartyAndFriendsHook(), this);
         }
         // SLIME WORLD MANAGER
-        if (Bukkit.getPluginManager().isPluginEnabled("SlimeWorldManager") && getCfg().isUseSlimeWorldManager()) {
+        if (getCfg().isUseSlimeWorldManager()) {
             getLogger().info("SlimeWorldManager option enabled. Checking for AdvancedSlimePaper...");
             try {
                 Class.forName("com.infernalsuite.aswm.SlimeNMSBridgeImpl");
