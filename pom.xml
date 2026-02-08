@@ -75,7 +75,7 @@
                 <maven.compiler.target>16</maven.compiler.target>
             </properties>
             <activation>
-                <jdk>16</jdk>
+                <jdk>21</jdk>
             </activation>
             <modules>
                 <module>v1_17_R1</module>
@@ -88,7 +88,7 @@
                 <maven.compiler.target>17</maven.compiler.target>
             </properties>
             <activation>
-                <jdk>17</jdk>
+                <jdk>21</jdk>
             </activation>
             <modules>
                 <module>slime-asp</module>
@@ -116,7 +116,7 @@
     <repositories>
         <repository>
             <id>bukkitmc</id>
-            <url>https://nexuslite.gcnt.net/repos/bukkit/</url>
+            <url>https://mvnrepository.com/artifact/org.bukkit/bukkit</url>
         </repository>
     </repositories>
 
